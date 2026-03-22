@@ -1,0 +1,11 @@
+## Interface: 120001
+## Title: HiddenLodge
+## Notes: Hidden Lodge guild tools and website export imports.
+## Author: Hidden Lodge
+## Version: 0.0.1
+## OptionalDeps: Ace3, RCLootCouncil
+## SavedVariables: HiddenLodgeDB
+
+HiddenLodge.lua
+HiddenLodge_Style.lua
+HiddenLodge_UI.lua
