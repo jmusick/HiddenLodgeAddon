@@ -4,8 +4,10 @@ Starter World of Warcraft addon scaffold for the Hidden Lodge guild.
 
 ## Files
 - `HiddenLodge.toc`: Addon metadata and load order.
-- `HiddenLodge.lua`: Ace3 bootstrap, saved variables setup, and slash command routing.
+- `HiddenLodge.lua`: Ace3 bootstrap, saved variables setup, slash command routing, and integration registry.
 - `HiddenLodge_Style.lua`: Shared UI constants and style helpers.
+- `HiddenLodge_Preparedness.lua`: Preparedness data import/parsing and lookup logic.
+- `HiddenLodge_Integration_RCLootCouncil.lua`: RCLootCouncil integration module that injects the voting-frame column.
 - `HiddenLodge_UI.lua`: Main window construction and JSON import text area.
 
 ## Ace3 dependency

@@ -8,4 +8,6 @@
 
 HiddenLodge.lua
 HiddenLodge_Style.lua
+HiddenLodge_Preparedness.lua
+HiddenLodge_Integration_RCLootCouncil.lua
 HiddenLodge_UI.lua

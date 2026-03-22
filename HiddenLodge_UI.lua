@@ -1,4 +1,4 @@
----@diagnostic disable: inject-field, undefined-field
+---@diagnostic disable: inject-field, undefined-field, undefined-global, deprecated
 local addonName = ...
 ---@type HiddenLodgeAddon
 local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName)
