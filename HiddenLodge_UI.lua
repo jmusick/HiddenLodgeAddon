@@ -32,12 +32,14 @@ function HiddenLodge:SetStatus(message, r, g, b)
     self.mainWindow.statusText:SetTextColor(r or 1, g or 0.82, b or 0)
 end
 
-function HiddenLodge:GetImportText()
-    if not self.mainWindow or not self.mainWindow.importEditBox then
+function HiddenLodge:RefreshPreparednessStatusUI()
+    if not self.mainWindow or not self.mainWindow.syncInfoText then
         return ""
     end
 
-    return self.mainWindow.importEditBox:GetText() or ""
+    local syncText, r, g, b = self:GetPreparednessSyncStatusText()
+    self.mainWindow.syncInfoText:SetText(syncText)
+    self.mainWindow.syncInfoText:SetTextColor(r, g, b)
 end
 
 function HiddenLodge:CreateMainWindow()
@@ -118,89 +120,48 @@ function HiddenLodge:CreateMainWindow()
     frame.subtitle:SetPoint("RIGHT", content, "RIGHT", -innerInset, 0)
     frame.subtitle:SetJustifyH("LEFT")
     frame.subtitle:SetTextColor(0.78, 0.84, 0.93)
-    frame.subtitle:SetText("Paste JSON export from the guild website below.")
+    frame.subtitle:SetText("Guild data is now pushed from the HiddenLodge Desktop app.")
 
-    local importPanel = CreateFrame("Frame", nil, content, "BackdropTemplate")
-    importPanel:SetPoint("TOPLEFT", frame.subtitle, "BOTTOMLEFT", 0, -c.VERTICAL_GAP)
-    importPanel:SetPoint("TOPRIGHT", content, "TOPRIGHT", -innerInset, -(innerInset + 18 + c.VERTICAL_GAP))
-    importPanel:SetPoint("BOTTOM", content, "BOTTOM", 0, innerInset + c.BUTTON_HEIGHT + c.VERTICAL_GAP + 6)
-    importPanel:SetBackdrop({
+    local syncPanel = CreateFrame("Frame", nil, content, "BackdropTemplate")
+    syncPanel:SetPoint("TOPLEFT", frame.subtitle, "BOTTOMLEFT", 0, -c.VERTICAL_GAP)
+    syncPanel:SetPoint("TOPRIGHT", content, "TOPRIGHT", -innerInset, -(innerInset + 18 + c.VERTICAL_GAP))
+    syncPanel:SetPoint("BOTTOM", content, "BOTTOM", 0, innerInset + c.BUTTON_HEIGHT + c.VERTICAL_GAP + 6)
+    syncPanel:SetBackdrop({
         bgFile = "Interface/Buttons/WHITE8x8",
         edgeFile = "Interface/Buttons/WHITE8x8",
         tile = true,
         tileSize = 8,
         edgeSize = 1,
     })
-    importPanel:SetBackdropColor(unpack(c.COLOR_INPUT_BG))
-    importPanel:SetBackdropBorderColor(unpack(c.COLOR_INPUT_BORDER))
+    syncPanel:SetBackdropColor(unpack(c.COLOR_INPUT_BG))
+    syncPanel:SetBackdropBorderColor(unpack(c.COLOR_INPUT_BORDER))
 
-    local importHint = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    importHint:SetPoint("TOPLEFT", importPanel, "BOTTOMLEFT", 2, -8)
-    importHint:SetPoint("RIGHT", content, "RIGHT", -innerInset, 0)
-    importHint:SetJustifyH("LEFT")
-    importHint:SetTextColor(0.64, 0.71, 0.82)
-    importHint:SetText("Use Ctrl+V in this field. Parsing/validation will be added next.")
+    local syncInfoText = syncPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    syncInfoText:SetPoint("TOPLEFT", syncPanel, "TOPLEFT", 10, -10)
+    syncInfoText:SetPoint("TOPRIGHT", syncPanel, "TOPRIGHT", -10, -10)
+    syncInfoText:SetJustifyH("LEFT")
+    syncInfoText:SetJustifyV("TOP")
+    syncInfoText:SetSpacing(4)
+    syncInfoText:SetText("Loading sync status...")
 
-    local scrollFrame = CreateFrame("ScrollFrame", "HiddenLodgeImportScrollFrame", importPanel, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", importPanel, "TOPLEFT", 6, -6)
-    scrollFrame:SetPoint("BOTTOMRIGHT", importPanel, "BOTTOMRIGHT", -30, 6)
-
-    local editBox = CreateFrame("EditBox", nil, scrollFrame)
-    editBox:SetAutoFocus(false)
-    editBox:SetMultiLine(true)
-    editBox:SetFontObject("ChatFontNormal")
-    editBox:SetTextInsets(4, 4, 4, 4)
-    editBox:SetWidth(c.WINDOW_WIDTH - (outerInset * 2 + innerInset * 2 + 30))
-    editBox:SetScript("OnCursorChanged", function(box, _, y)
-        scrollFrame:SetVerticalScroll(y)
-    end)
-    editBox:SetScript("OnTextChanged", function(box)
-        local text = box:GetText() or ""
-        self:SetStatus("Import payload length: " .. #text .. " characters", 0.78, 0.84, 0.93)
-    end)
-
-    scrollFrame:SetScrollChild(editBox)
+    local syncHint = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    syncHint:SetPoint("TOPLEFT", syncPanel, "BOTTOMLEFT", 2, -8)
+    syncHint:SetPoint("RIGHT", content, "RIGHT", -innerInset, 0)
+    syncHint:SetJustifyH("LEFT")
+    syncHint:SetTextColor(0.64, 0.71, 0.82)
+        syncHint:SetText("Use the desktop app to sync latest data, then run /reload in WoW to update this panel.")
 
     frame.statusText = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     frame.statusText:SetPoint("LEFT", content, "LEFT", innerInset, innerInset + 1)
-    frame.statusText:SetPoint("RIGHT", content, "RIGHT", -innerInset - (c.BUTTON_WIDTH * 2) - 18, innerInset + 1)
+        frame.statusText:SetPoint("RIGHT", content, "RIGHT", -innerInset, innerInset + 1)
     frame.statusText:SetJustifyH("LEFT")
     frame.statusText:SetTextColor(0.93, 0.79, 0.40)
-    frame.statusText:SetText("Ready for website JSON import.")
+    frame.statusText:SetText("Data sync status available.")
 
-    local importButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
-    importButton:SetSize(c.BUTTON_WIDTH, c.BUTTON_HEIGHT)
-    importButton:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -(innerInset + c.BUTTON_WIDTH + 8), innerInset)
-    importButton:SetText("Import")
-    self:ApplyPrimaryButtonStyle(importButton)
-    importButton:SetScript("OnClick", function()
-        local ok, result = self:ImportPreparednessJSON(self:GetImportText())
-        if not ok then
-            self:SetStatus(result, 0.95, 0.40, 0.35)
-            return
-        end
 
-        local hooked, reason = self:EnsureRCLootCouncilColumn()
-        if hooked then
-            self:SetStatus("Imported " .. result .. " character entries. RCLootCouncil column updated.", 0.35, 0.95, 0.5)
-        else
-            self:SetStatus("Imported " .. result .. " entries. " .. reason, 0.95, 0.80, 0.40)
-        end
-    end)
-
-    local clearButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
-    clearButton:SetSize(c.BUTTON_WIDTH, c.BUTTON_HEIGHT)
-    clearButton:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -innerInset, innerInset)
-    clearButton:SetText("Clear")
-    self:ApplySecondaryButtonStyle(clearButton)
-    clearButton:SetScript("OnClick", function()
-        editBox:SetText("")
-        self:SetStatus("Import text cleared.", 0.93, 0.79, 0.40)
-        editBox:SetFocus()
-    end)
-
-    frame.importScroll = scrollFrame
-    frame.importEditBox = editBox
+    frame.syncInfoText = syncInfoText
+    frame.syncPanel = syncPanel
+    self:RefreshPreparednessStatusUI()
 
     frame:Hide()
     self.mainWindow = frame
@@ -213,7 +174,7 @@ end
 function HiddenLodge:ShowMainWindow()
     self:CreateMainWindow()
     self.mainWindow:Show()
-    self.mainWindow.importEditBox:SetFocus()
+    self:RefreshPreparednessStatusUI()
 end
 
 function HiddenLodge:HideMainWindow()
@@ -229,6 +190,6 @@ function HiddenLodge:ToggleMainWindow()
         self.mainWindow:Hide()
     else
         self.mainWindow:Show()
-        self.mainWindow.importEditBox:SetFocus()
+        self:RefreshPreparednessStatusUI()
     end
 end

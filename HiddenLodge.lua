@@ -36,6 +36,10 @@ local function ensureDefaults(db)
     db.preparedness = db.preparedness or {}
     db.preparedness.byFull = db.preparedness.byFull or {}
     db.preparedness.byName = db.preparedness.byName or {}
+    db.preparedness.sync = db.preparedness.sync or {}
+    db.preparedness.sync.source = db.preparedness.sync.source or ""
+    db.preparedness.sync.syncedAt = db.preparedness.sync.syncedAt or 0
+    db.preparedness.sync.entries = db.preparedness.sync.entries or 0
 end
 
 function HiddenLodge:RegisterIntegration(name, integration)
