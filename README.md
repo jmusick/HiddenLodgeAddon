@@ -47,4 +47,16 @@ When RCLootCouncil is installed and loaded, HiddenLodge injects a `Prep` column 
 ## In-game usage
 - `/hl` or `/hl show`: Toggle/show the main window.
 - `/hl hide`: Hide the main window.
-- Paste website JSON into the field and click `Import`.
+- Open the panel to view current desktop sync status.
+
+## CurseForge release automation
+This repo includes tag-based release automation in `.github/workflows/release.yml` using `BigWigsMods/packager`.
+
+Required one-time setup:
+1. Create a CurseForge API token and add it to GitHub repository secrets as `CURSEFORGE_API_TOKEN`.
+2. Set your CurseForge project id in `.pkgmeta` by uncommenting and editing:
+	- `curseforge:`
+	- `project-id: <your_project_id>`
+3. Push a tag like `v1.0.0`.
+
+On tag push, GitHub Actions will package the addon and publish the release.

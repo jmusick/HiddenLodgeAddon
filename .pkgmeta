@@ -1,0 +1,16 @@
+package-as: HiddenLodge
+
+auto-increment: none
+
+enable-nolib-creation: false
+
+ignore:
+  - .github
+  - .vscode
+  - README.md
+  - .gitignore
+
+# Set your real CurseForge project id before tagging a release.
+# Example:
+# curseforge:
+#   project-id: 123456
