@@ -40,6 +40,16 @@ local function ensureDefaults(db)
     db.preparedness.sync.source = db.preparedness.sync.source or ""
     db.preparedness.sync.syncedAt = db.preparedness.sync.syncedAt or 0
     db.preparedness.sync.entries = db.preparedness.sync.entries or 0
+
+    db.altNoteSync = db.altNoteSync or {}
+    db.altNoteSync.preferredByName = db.altNoteSync.preferredByName or {}
+    db.altNoteSync.mainByName = db.altNoteSync.mainByName or {}
+    db.altNoteSync.nicknameByName = db.altNoteSync.nicknameByName or {}
+    db.altNoteSync.sync = db.altNoteSync.sync or {}
+    db.altNoteSync.sync.source = db.altNoteSync.sync.source or ""
+    db.altNoteSync.sync.syncedAt = db.altNoteSync.sync.syncedAt or 0
+    db.altNoteSync.sync.entries = db.altNoteSync.sync.entries or 0
+    db.altNoteSync.lastAppliedSyncedAt = db.altNoteSync.lastAppliedSyncedAt or 0
 end
 
 function HiddenLodge:RegisterIntegration(name, integration)
@@ -105,6 +115,9 @@ end
 function HiddenLodge:OnEnable()
     self:RegisterEvent("ADDON_LOADED", "HandleAddonLoaded")
     self:InitializeLoadedIntegrations()
+    if self.OnEnableAltNoteSync then
+        self:OnEnableAltNoteSync()
+    end
 end
 
 function HiddenLodge:HandleAddonLoaded(_, loadedAddonName)
