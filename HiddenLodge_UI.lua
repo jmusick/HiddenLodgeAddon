@@ -1,7 +1,6 @@
 ---@diagnostic disable: inject-field, undefined-field, undefined-global, deprecated
 local addonName = ...
----@type HiddenLodgeAddon
-local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName) --[[@as HiddenLodgeAddon]]
 
 local function saveWindowPoint(self, frame)
     local point, _, relativePoint, x, y = frame:GetPoint(1)
@@ -149,11 +148,22 @@ function HiddenLodge:CreateMainWindow()
     syncHint:SetPoint("RIGHT", content, "RIGHT", -innerInset, 0)
     syncHint:SetJustifyH("LEFT")
     syncHint:SetTextColor(0.64, 0.71, 0.82)
-        syncHint:SetText("Use the desktop app to sync latest data, then run /reload in WoW to update this panel.")
+    syncHint:SetText("Use the desktop app to sync latest data, then run /reload in WoW to update this panel.")
+
+    frame.showMismatchButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    frame.showMismatchButton:SetSize(210, c.BUTTON_HEIGHT)
+    frame.showMismatchButton:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -innerInset, innerInset)
+    frame.showMismatchButton:SetText("Show Mismatched Notes")
+    self:ApplySecondaryButtonStyle(frame.showMismatchButton)
+    frame.showMismatchButton:SetScript("OnClick", function()
+        if self.ShowAltNoteMismatches then
+            self:ShowAltNoteMismatches()
+        end
+    end)
 
     frame.statusText = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     frame.statusText:SetPoint("LEFT", content, "LEFT", innerInset, innerInset + 1)
-        frame.statusText:SetPoint("RIGHT", content, "RIGHT", -innerInset, innerInset + 1)
+    frame.statusText:SetPoint("RIGHT", frame.showMismatchButton, "LEFT", -10, 0)
     frame.statusText:SetJustifyH("LEFT")
     frame.statusText:SetTextColor(0.93, 0.79, 0.40)
     frame.statusText:SetText("Data sync status available.")
