@@ -10,7 +10,5 @@ ignore:
   - README.md
   - .gitignore
 
-# Set your real CurseForge project id before tagging a release.
-# Example:
-# curseforge:
-#   project-id: 123456
+curseforge:
+  project-id: 1498420
