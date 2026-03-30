@@ -7,6 +7,7 @@ Starter World of Warcraft addon scaffold for the Hidden Lodge guild.
 - `HiddenLodge.lua`: Ace3 bootstrap, saved variables setup, slash command routing, and integration registry.
 - `HiddenLodge_Style.lua`: Shared UI constants and style helpers.
 - `HiddenLodge_Preparedness.lua`: Preparedness data import/parsing and lookup logic.
+- `HiddenLodge_GreatVault.lua`: Great Vault score lookup and display color helpers.
 - `HiddenLodge_Integration_RCLootCouncil.lua`: RCLootCouncil integration module that injects the voting-frame column.
 - `HiddenLodge_UI.lua`: Main window construction and JSON import text area.
 
@@ -38,10 +39,11 @@ The default panel is a dedicated JSON import view:
 Gem/enchant checks and roster inspection are currently removed from this addon UI.
 
 ## RCLootCouncil integration
-When RCLootCouncil is installed and loaded, HiddenLodge injects a `Prep` column into the voting frame.
+When RCLootCouncil is installed and loaded, HiddenLodge injects `Prep` and `GV` columns into the voting frame.
 
-- The column displays `preparednessTier` from your imported JSON.
-- Sorting is enabled on this column.
+- `Prep` displays preparedness tier from desktop-synced data.
+- `GV` displays Great Vault score (0-100) from desktop-synced data.
+- Sorting is enabled on both columns.
 - Keys are matched by character + realm (with name-only fallback).
 
 ## In-game usage

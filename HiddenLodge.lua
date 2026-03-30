@@ -41,6 +41,14 @@ local function ensureDefaults(db)
     db.preparedness.sync.syncedAt = db.preparedness.sync.syncedAt or 0
     db.preparedness.sync.entries = db.preparedness.sync.entries or 0
 
+    db.greatVaultScore = db.greatVaultScore or {}
+    db.greatVaultScore.byFull = db.greatVaultScore.byFull or {}
+    db.greatVaultScore.byName = db.greatVaultScore.byName or {}
+    db.greatVaultScore.sync = db.greatVaultScore.sync or {}
+    db.greatVaultScore.sync.source = db.greatVaultScore.sync.source or ""
+    db.greatVaultScore.sync.syncedAt = db.greatVaultScore.sync.syncedAt or 0
+    db.greatVaultScore.sync.entries = db.greatVaultScore.sync.entries or 0
+
     db.altNoteSync = db.altNoteSync or {}
     db.altNoteSync.preferredByName = db.altNoteSync.preferredByName or {}
     db.altNoteSync.mainByName = db.altNoteSync.mainByName or {}
