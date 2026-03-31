@@ -196,7 +196,7 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
 
     if not preparednessColumnExists then
         tinsert(voting.scrollCols, {
-            name = "HL",
+            name = "Prep",
             DoCellUpdate = setCellPreparedness,
             colName = "preparednessTier",
             width = 70,
