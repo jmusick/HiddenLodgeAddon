@@ -49,6 +49,18 @@ local function ensureDefaults(db)
     db.greatVaultScore.sync.syncedAt = db.greatVaultScore.sync.syncedAt or 0
     db.greatVaultScore.sync.entries = db.greatVaultScore.sync.entries or 0
 
+    db.raidSignup = db.raidSignup or {}
+    db.raidSignup.byFullStatus = db.raidSignup.byFullStatus or {}
+    db.raidSignup.byNameStatus = db.raidSignup.byNameStatus or {}
+    db.raidSignup.byFullSignedAt = db.raidSignup.byFullSignedAt or {}
+    db.raidSignup.byNameSignedAt = db.raidSignup.byNameSignedAt or {}
+    db.raidSignup.sync = db.raidSignup.sync or {}
+    db.raidSignup.sync.source = db.raidSignup.sync.source or ""
+    db.raidSignup.sync.syncedAt = db.raidSignup.sync.syncedAt or 0
+    db.raidSignup.sync.entries = db.raidSignup.sync.entries or 0
+    db.raidSignup.sync.raidName = db.raidSignup.sync.raidName or ""
+    db.raidSignup.sync.raidStartUtc = db.raidSignup.sync.raidStartUtc or 0
+
     db.altNoteSync = db.altNoteSync or {}
     db.altNoteSync.preferredByName = db.altNoteSync.preferredByName or {}
     db.altNoteSync.mainByName = db.altNoteSync.mainByName or {}

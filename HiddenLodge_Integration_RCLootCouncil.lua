@@ -1,7 +1,7 @@
 ---@diagnostic disable: inject-field, undefined-field, undefined-global
 local addonName = ...
 ---@type HiddenLodgeAddon
-local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName) --[[@as HiddenLodgeAddon]]
 
 function HiddenLodge:EnsureRCLootCouncilColumn()
     local ace = LibStub and LibStub("AceAddon-3.0", true)
@@ -114,8 +114,70 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
         end
     end
 
+    local function raidSignupSort(tableObj, rowa, rowb, sortbycol)
+        local column = tableObj.cols[sortbycol]
+        local a = tableObj:GetRow(rowa)
+        local b = tableObj:GetRow(rowb)
+        if not (a and b) then
+            return false
+        end
+
+        local aStatus, _, aSignedAt = self:GetRaidSignupForCandidate(a.name)
+        local bStatus, _, bSignedAt = self:GetRaidSignupForCandidate(b.name)
+        local aRank = self:GetRaidSignupSortValue(aStatus)
+        local bRank = self:GetRaidSignupSortValue(bStatus)
+        local aTs = tonumber(aSignedAt) or 0
+        local bTs = tonumber(bSignedAt) or 0
+
+        if aRank == bRank and aTs == bTs then
+            local an = tostring(a.name or "")
+            local bn = tostring(b.name or "")
+            if an == bn then
+                return false
+            end
+            local direction = column.sort or column.defaultsort or 1
+            if direction == 1 then
+                return an < bn
+            end
+            return an > bn
+        end
+
+        local direction = column.sort or column.defaultsort or 1
+        if direction == 1 then
+            if aRank == bRank then
+                return aTs < bTs
+            end
+            return aRank < bRank
+        end
+        if aRank == bRank then
+            return aTs > bTs
+        end
+        return aRank > bRank
+    end
+
+    local function setCellRaidSignup(rowFrame, frame, data, cols, row, realrow, column)
+        local name = data and data[realrow] and data[realrow].name or nil
+        local statusKey, statusLabel, signedAt = self:GetRaidSignupForCandidate(name)
+        local signedAtText = self:FormatRaidSignupSignedAt(signedAt)
+        local text = statusLabel
+        if signedAtText ~= "-" then
+            text = statusLabel .. " " .. signedAtText
+        end
+
+        local r, g, b = self:GetRaidSignupColor(statusKey)
+        frame.text:SetText(text)
+        frame.text:SetTextColor(r, g, b, 1)
+
+        if data and data[realrow] and data[realrow].cols and data[realrow].cols[column] then
+            local rank = self:GetRaidSignupSortValue(statusKey)
+            local ts = tonumber(signedAt) or 0
+            data[realrow].cols[column].value = rank * 10000000000 + ts
+        end
+    end
+
     local preparednessColumnExists = false
     local greatVaultColumnExists = false
+    local raidSignupColumnExists = false
     for _, col in ipairs(voting.scrollCols or {}) do
         if col.colName == "preparednessTier" then
             col.DoCellUpdate = setCellPreparedness
@@ -125,6 +187,10 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
             col.DoCellUpdate = setCellGreatVault
             col.comparesort = greatVaultSort
             greatVaultColumnExists = true
+        elseif col.colName == "raidSignup" then
+            col.DoCellUpdate = setCellRaidSignup
+            col.comparesort = raidSignupSort
+            raidSignupColumnExists = true
         end
     end
 
@@ -148,6 +214,18 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
             width = 52,
             align = "CENTER",
             comparesort = greatVaultSort,
+            sortnext = 2,
+        })
+    end
+
+    if not raidSignupColumnExists then
+        tinsert(voting.scrollCols, {
+            name = "Signup",
+            DoCellUpdate = setCellRaidSignup,
+            colName = "raidSignup",
+            width = 136,
+            align = "LEFT",
+            comparesort = raidSignupSort,
             sortnext = 2,
         })
     end
