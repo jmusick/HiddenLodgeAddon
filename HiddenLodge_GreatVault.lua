@@ -1,7 +1,7 @@
 ---@diagnostic disable: inject-field, undefined-field, undefined-global
 local addonName = ...
 ---@type HiddenLodgeAddon
-local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName) --[[@as HiddenLodgeAddon]]
 
 local function trim(value)
     return (tostring(value or ""):gsub("^%s+", ""):gsub("%s+$", ""))
@@ -27,6 +27,17 @@ local function normalizedFullKey(character, realm)
     end
 
     return n .. "-" .. r
+end
+
+local function countEntries(map)
+    local total = 0
+    if type(map) ~= "table" then
+        return 0
+    end
+    for _ in pairs(map) do
+        total = total + 1
+    end
+    return total
 end
 
 function HiddenLodge:GetGreatVaultScoreForCandidate(candidate)
@@ -82,4 +93,29 @@ function HiddenLodge:GetGreatVaultScoreColor(score)
         return 0.12, 1.00, 0.12
     end
     return 1.00, 1.00, 1.00
+end
+
+function HiddenLodge:GetGreatVaultSyncStatus()
+    local store = self.db and self.db.greatVaultScore or {}
+    local sync = (store and store.sync) or {}
+
+    local source = trim(sync.source)
+    if source == "" then
+        source = "Unknown"
+    end
+
+    local entries = tonumber(sync.entries)
+    if not entries or entries <= 0 then
+        entries = countEntries(store.byFull)
+    end
+
+    if source == "Unknown" and entries > 0 then
+        source = "HiddenLodgeDesktop (legacy)"
+    end
+
+    return {
+        source = source,
+        entries = entries,
+        syncedAt = tonumber(sync.syncedAt) or 0,
+    }
 end

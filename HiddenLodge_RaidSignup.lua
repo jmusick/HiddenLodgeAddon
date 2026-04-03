@@ -45,6 +45,17 @@ local function normalizedFullKey(character, realm)
     return n .. "-" .. r
 end
 
+local function countEntries(map)
+    local total = 0
+    if type(map) ~= "table" then
+        return 0
+    end
+    for _ in pairs(map) do
+        total = total + 1
+    end
+    return total
+end
+
 function HiddenLodge:GetRaidSignupSortValue(status)
     local key = trim(status):lower()
     return STATUS_SORT[key] or 0
@@ -112,4 +123,31 @@ function HiddenLodge:GetRaidSignupForCandidate(candidate)
     end
 
     return status, STATUS_LABELS[status], signedAt
+end
+
+function HiddenLodge:GetRaidSignupSyncStatus()
+    local store = self.db and self.db.raidSignup or {}
+    local sync = (store and store.sync) or {}
+
+    local source = trim(sync.source)
+    if source == "" then
+        source = "Unknown"
+    end
+
+    local entries = tonumber(sync.entries)
+    if not entries or entries <= 0 then
+        entries = countEntries(store.byFullStatus)
+    end
+
+    if source == "Unknown" and entries > 0 then
+        source = "HiddenLodgeDesktop (legacy)"
+    end
+
+    return {
+        source = source,
+        entries = entries,
+        syncedAt = tonumber(sync.syncedAt) or 0,
+        raidName = trim(sync.raidName),
+        raidStartUtc = tonumber(sync.raidStartUtc) or 0,
+    }
 end

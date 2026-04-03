@@ -22,6 +22,82 @@ local function applySavedWindowPoint(self, frame)
     frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
 end
 
+local function formatAge(seconds)
+    if not seconds or seconds < 0 then
+        return "unknown"
+    end
+
+    if seconds < 60 then
+        return seconds .. "s ago"
+    end
+
+    local minutes = math.floor(seconds / 60)
+    if minutes < 60 then
+        return minutes .. "m ago"
+    end
+
+    local hours = math.floor(minutes / 60)
+    if hours < 48 then
+        return hours .. "h ago"
+    end
+
+    local days = math.floor(hours / 24)
+    return days .. "d ago"
+end
+
+local function formatSyncMoment(timestamp)
+    local syncedAt = tonumber(timestamp) or 0
+    if syncedAt <= 0 then
+        return "not recorded"
+    end
+
+    return date("%Y-%m-%d %H:%M:%S", syncedAt) .. " (" .. formatAge(time() - syncedAt) .. ")"
+end
+
+local function joinParts(parts)
+    local filtered = {}
+    for _, part in ipairs(parts) do
+        if part and part ~= "" then
+            filtered[#filtered + 1] = part
+        end
+    end
+    return table.concat(filtered, " | ")
+end
+
+local function getSyncStateText(info)
+    local entries = tonumber(info.entries) or 0
+    local syncedAt = tonumber(info.syncedAt) or 0
+    if entries <= 0 then
+        return "Missing", "|cfff2b36b"
+    end
+    if info.pendingApply then
+        return "Pending Apply", "|cffffd166"
+    end
+    if syncedAt <= 0 then
+        return "Legacy", "|cffffd166"
+    end
+    return "Ready", "|cff59f27f"
+end
+
+local function buildSyncSection(label, info)
+    local stateText, stateColor = getSyncStateText(info)
+    local details = {
+        "Entries: " .. tostring(tonumber(info.entries) or 0),
+        "Sync: " .. formatSyncMoment(info.syncedAt),
+        info.source and ("Source: " .. tostring(info.source)) or nil,
+        info.raidName and info.raidName ~= "" and ("Raid: " .. tostring(info.raidName)) or nil,
+        info.lastAppliedSyncedAt ~= nil and ("Applied: " .. ((info.pendingApply and "pending") or ((tonumber(info.lastAppliedSyncedAt) or 0) > 0 and "yes" or "no"))) or nil,
+    }
+
+    return string.format(
+        "|cfff2d172%s|r  %s%s|r\n%s",
+        label,
+        stateColor,
+        stateText,
+        joinParts(details)
+    )
+end
+
 function HiddenLodge:SetStatus(message, r, g, b)
     if not self.mainWindow or not self.mainWindow.statusText then
         return
@@ -36,9 +112,23 @@ function HiddenLodge:RefreshPreparednessStatusUI()
         return ""
     end
 
-    local syncText, r, g, b = self:GetPreparednessSyncStatusText()
-    self.mainWindow.syncInfoText:SetText(syncText)
-    self.mainWindow.syncInfoText:SetTextColor(r, g, b)
+    local preparedness = self.GetPreparednessSyncStatus and self:GetPreparednessSyncStatus() or { entries = 0, syncedAt = 0, source = "Unknown" }
+    local greatVault = self.GetGreatVaultSyncStatus and self:GetGreatVaultSyncStatus() or { entries = 0, syncedAt = 0, source = "Unknown" }
+    local raidSignup = self.GetRaidSignupSyncStatus and self:GetRaidSignupSyncStatus() or { entries = 0, syncedAt = 0, source = "Unknown", raidName = "" }
+    local altNoteSync = self.GetAltNoteSyncStatus and self:GetAltNoteSyncStatus() or { entries = 0, syncedAt = 0, source = "Unknown", lastAppliedSyncedAt = 0 }
+    altNoteSync.pendingApply = (tonumber(altNoteSync.entries) or 0) > 0
+        and (tonumber(altNoteSync.syncedAt) or 0) > 0
+        and (tonumber(altNoteSync.lastAppliedSyncedAt) or 0) < (tonumber(altNoteSync.syncedAt) or 0)
+
+    local sections = {
+        buildSyncSection("Preparedness", preparedness),
+        buildSyncSection("Great Vault", greatVault),
+        buildSyncSection("Raid Signup", raidSignup),
+        buildSyncSection("Alt Note Sync", altNoteSync),
+    }
+
+    self.mainWindow.syncInfoText:SetText(table.concat(sections, "\n\n"))
+    self.mainWindow.syncInfoText:SetTextColor(0.90, 0.92, 0.95)
 end
 
 function HiddenLodge:CreateMainWindow()
@@ -135,23 +225,19 @@ function HiddenLodge:CreateMainWindow()
     syncPanel:SetBackdropColor(unpack(c.COLOR_INPUT_BG))
     syncPanel:SetBackdropBorderColor(unpack(c.COLOR_INPUT_BORDER))
 
-    local syncInfoText = syncPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    local syncInfoText = syncPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     syncInfoText:SetPoint("TOPLEFT", syncPanel, "TOPLEFT", 10, -10)
     syncInfoText:SetPoint("TOPRIGHT", syncPanel, "TOPRIGHT", -10, -10)
     syncInfoText:SetJustifyH("LEFT")
     syncInfoText:SetJustifyV("TOP")
-    syncInfoText:SetSpacing(4)
-    syncInfoText:SetText("Loading sync status...")
+    syncInfoText:SetSpacing(3)
+    syncInfoText:SetText("Loading sync statuses...")
 
-    local syncHint = content:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    syncHint:SetPoint("TOPLEFT", syncPanel, "BOTTOMLEFT", 2, -8)
-    syncHint:SetPoint("RIGHT", content, "RIGHT", -innerInset, 0)
-    syncHint:SetJustifyH("LEFT")
-    syncHint:SetTextColor(0.64, 0.71, 0.82)
-    syncHint:SetText("Use the desktop app to sync latest data, then run /reload in WoW to update this panel.")
+    local bottomButtonWidth = 180
+    local bottomButtonGap = 8
 
     frame.showMismatchButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
-    frame.showMismatchButton:SetSize(210, c.BUTTON_HEIGHT)
+    frame.showMismatchButton:SetSize(bottomButtonWidth, c.BUTTON_HEIGHT)
     frame.showMismatchButton:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -innerInset, innerInset)
     frame.showMismatchButton:SetText("Show Mismatched Notes")
     self:ApplySecondaryButtonStyle(frame.showMismatchButton)
@@ -161,9 +247,20 @@ function HiddenLodge:CreateMainWindow()
         end
     end)
 
+    frame.showRaidInviteButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    frame.showRaidInviteButton:SetSize(bottomButtonWidth, c.BUTTON_HEIGHT)
+    frame.showRaidInviteButton:SetPoint("RIGHT", frame.showMismatchButton, "LEFT", -bottomButtonGap, 0)
+    frame.showRaidInviteButton:SetText("Raid Invites")
+    self:ApplySecondaryButtonStyle(frame.showRaidInviteButton)
+    frame.showRaidInviteButton:SetScript("OnClick", function()
+        if self.ShowRaidInviteFrame then
+            self:ShowRaidInviteFrame()
+        end
+    end)
+
     frame.statusText = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     frame.statusText:SetPoint("LEFT", content, "LEFT", innerInset, innerInset + 1)
-    frame.statusText:SetPoint("RIGHT", frame.showMismatchButton, "LEFT", -10, 0)
+    frame.statusText:SetPoint("RIGHT", frame.showRaidInviteButton, "LEFT", -10, 0)
     frame.statusText:SetJustifyH("LEFT")
     frame.statusText:SetTextColor(0.93, 0.79, 0.40)
     frame.statusText:SetText("Data sync status available.")

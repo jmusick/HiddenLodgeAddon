@@ -10,6 +10,17 @@ local function normalize(value)
     return trim(value):lower()
 end
 
+local function countEntries(map)
+    local total = 0
+    if type(map) ~= "table" then
+        return 0
+    end
+    for _ in pairs(map) do
+        total = total + 1
+    end
+    return total
+end
+
 local function canEditPublicNotes()
     if type(CanEditPublicNote) == "function" then
         local ok, result = pcall(CanEditPublicNote)
@@ -217,6 +228,10 @@ local function ensureReportFrame()
 
     local parent = HiddenLodge and HiddenLodge.mainWindow or UIParent
     local c = HiddenLodge and HiddenLodge.GetUIConstants and HiddenLodge:GetUIConstants() or nil
+    local outerInset = (c and (c.CONTENT_PADDING + 6)) or 22
+    local innerInset = (c and c.INNER_PADDING) or 12
+    local verticalGap = (c and c.VERTICAL_GAP) or 12
+    local headerHeight = (c and c.HEADER_HEIGHT) or 38
 
     reportFrame = CreateFrame("Frame", "HiddenLodgeMismatchReportFrame", parent, "BackdropTemplate")
     reportFrame:SetSize(860, 500)
@@ -252,9 +267,9 @@ local function ensureReportFrame()
     end
 
     local headerBar = CreateFrame("Frame", nil, reportFrame, "BackdropTemplate")
-    headerBar:SetPoint("TOPLEFT", reportFrame, "TOPLEFT", 12, -12)
-    headerBar:SetPoint("TOPRIGHT", reportFrame, "TOPRIGHT", -12, -12)
-    headerBar:SetHeight(28)
+    headerBar:SetPoint("TOPLEFT", reportFrame, "TOPLEFT", outerInset, -outerInset)
+    headerBar:SetPoint("TOPRIGHT", reportFrame, "TOPRIGHT", -outerInset, -outerInset)
+    headerBar:SetHeight(headerHeight)
     headerBar:SetBackdrop({
         bgFile = "Interface/Buttons/WHITE8x8",
         edgeFile = "Interface/Buttons/WHITE8x8",
@@ -271,17 +286,36 @@ local function ensureReportFrame()
     end
     reportFrame.headerBar = headerBar
 
-    reportFrame.title = reportFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    reportFrame.title:SetPoint("LEFT", headerBar, "LEFT", 10, 0)
+    reportFrame.title = headerBar:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    reportFrame.title:SetPoint("LEFT", headerBar, "LEFT", 14, 0)
     reportFrame.title:SetTextColor(0.95, 0.82, 0.44)
-    reportFrame.title:SetText("HiddenLodge Alt Note Sync")
+    reportFrame.title:SetText("Hidden Lodge Mismatched Notes Utility")
 
     reportFrame.closeButton = CreateFrame("Button", nil, reportFrame, "UIPanelCloseButton")
-    reportFrame.closeButton:SetPoint("TOPRIGHT", headerBar, "TOPRIGHT", 2, 2)
+    reportFrame.closeButton:SetPoint("TOPRIGHT", reportFrame, "TOPRIGHT", 2, 2)
 
-    local header = CreateFrame("Frame", nil, reportFrame)
-    header:SetPoint("TOPLEFT", reportFrame, "TOPLEFT", 18, -50)
-    header:SetPoint("TOPRIGHT", reportFrame, "TOPRIGHT", -30, -50)
+    local content = CreateFrame("Frame", nil, reportFrame, "BackdropTemplate")
+    content:SetPoint("TOPLEFT", reportFrame, "TOPLEFT", outerInset, -(outerInset + headerHeight + verticalGap))
+    content:SetPoint("BOTTOMRIGHT", reportFrame, "BOTTOMRIGHT", -outerInset, outerInset)
+    content:SetBackdrop({
+        bgFile = "Interface/Buttons/WHITE8x8",
+        edgeFile = "Interface/Buttons/WHITE8x8",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 1,
+    })
+    if c then
+        content:SetBackdropColor(unpack(c.COLOR_PANEL_BG))
+        content:SetBackdropBorderColor(unpack(c.COLOR_PANEL_BORDER))
+    else
+        content:SetBackdropColor(0.03, 0.07, 0.12, 0.95)
+        content:SetBackdropBorderColor(0.30, 0.24, 0.11, 0.95)
+    end
+    reportFrame.contentPanel = content
+
+    local header = CreateFrame("Frame", nil, content)
+    header:SetPoint("TOPLEFT", content, "TOPLEFT", innerInset, -innerInset)
+    header:SetPoint("TOPRIGHT", content, "TOPRIGHT", -(innerInset + 10), -innerInset)
     header:SetHeight(20)
 
     local function makeHeader(label, anchor, width)
@@ -303,14 +337,14 @@ local function ensureReportFrame()
     local hCurrent = makeHeader("Current Note", hDesired, 130)
     hCurrent:SetPoint("LEFT", hDesired, "RIGHT", 8, 0)
 
-    reportFrame.summary = reportFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    reportFrame.summary:SetPoint("BOTTOMLEFT", reportFrame, "BOTTOMLEFT", 20, 18)
-    reportFrame.summary:SetPoint("BOTTOMRIGHT", reportFrame, "BOTTOMRIGHT", -20, 18)
+    reportFrame.summary = content:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    reportFrame.summary:SetPoint("BOTTOMLEFT", content, "BOTTOMLEFT", innerInset, innerInset)
+    reportFrame.summary:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -innerInset, innerInset)
     reportFrame.summary:SetJustifyH("LEFT")
 
-    reportFrame.scroll = CreateFrame("ScrollFrame", nil, reportFrame, "UIPanelScrollFrameTemplate")
+    reportFrame.scroll = CreateFrame("ScrollFrame", nil, content, "UIPanelScrollFrameTemplate")
     reportFrame.scroll:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
-    reportFrame.scroll:SetPoint("BOTTOMRIGHT", reportFrame, "BOTTOMRIGHT", -30, 44)
+    reportFrame.scroll:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -(innerInset + 18), innerInset + 18)
 
     reportFrame.content = CreateFrame("Frame", nil, reportFrame.scroll)
     reportFrame.content:SetSize(800, 1)
@@ -490,4 +524,30 @@ function HiddenLodge:OnEnableAltNoteSync()
         C_GuildInfo.GuildRoster()
     end
     self:TryAutoApplyAltNotes()
+end
+
+function HiddenLodge:GetAltNoteSyncStatus()
+    local store = self.db and self.db.altNoteSync or {}
+    local sync = (store and store.sync) or {}
+
+    local source = trim(sync.source)
+    if source == "" then
+        source = "Unknown"
+    end
+
+    local entries = tonumber(sync.entries)
+    if not entries or entries <= 0 then
+        entries = countEntries(store.preferredByName)
+    end
+
+    if source == "Unknown" and entries > 0 then
+        source = "HiddenLodgeDesktop (legacy)"
+    end
+
+    return {
+        source = source,
+        entries = entries,
+        syncedAt = tonumber(sync.syncedAt) or 0,
+        lastAppliedSyncedAt = tonumber(store.lastAppliedSyncedAt) or 0,
+    }
 end

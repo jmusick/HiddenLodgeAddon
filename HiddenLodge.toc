@@ -2,7 +2,7 @@
 ## Title: HiddenLodge
 ## Notes: Hidden Lodge guild tools and desktop sync status.
 ## Author: Hidden Lodge
-## Version: 1.2.1
+## Version: 1.2.2
 ## X-Curse-Project-ID: 1498420
 ## OptionalDeps: Ace3, RCLootCouncil
 ## SavedVariables: HiddenLodgeDB
@@ -12,6 +12,7 @@ HiddenLodge_Style.lua
 HiddenLodge_Preparedness.lua
 HiddenLodge_GreatVault.lua
 HiddenLodge_RaidSignup.lua
+HiddenLodge_InviteTool.lua
 HiddenLodge_AltNoteSync.lua
 HiddenLodge_Integration_RCLootCouncil.lua
 HiddenLodge_UI.lua
