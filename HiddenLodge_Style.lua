@@ -1,7 +1,7 @@
 ---@diagnostic disable: inject-field, undefined-field
 local addonName = ...
 ---@type HiddenLodgeAddon
-local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName) --[[@as HiddenLodgeAddon]]
 
 HiddenLodge.Constants = {
     WINDOW_WIDTH = 700,

@@ -1,7 +1,7 @@
 ---@diagnostic disable: inject-field, undefined-field, undefined-global
 local addonName = ...
 ---@type HiddenLodgeAddon
-local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName) --[[@as HiddenLodgeAddon]]
 
 local TIER_SCORES = {
     ["S Tier"] = 5,
