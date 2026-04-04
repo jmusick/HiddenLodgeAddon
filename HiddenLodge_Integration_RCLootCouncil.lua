@@ -114,6 +114,59 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
         end
     end
 
+    local function attendanceSort(tableObj, rowa, rowb, sortbycol)
+        local column = tableObj.cols[sortbycol]
+        local a = tableObj:GetRow(rowa)
+        local b = tableObj:GetRow(rowb)
+        if not (a and b) then
+            return false
+        end
+
+        local ascore = self:GetAttendanceScoreForCandidate(a.name)
+        local bscore = self:GetAttendanceScoreForCandidate(b.name)
+        local av = ascore or -1
+        local bv = bscore or -1
+
+        if av == bv then
+            local an = tostring(a.name or "")
+            local bn = tostring(b.name or "")
+            if an == bn then
+                return false
+            end
+            local direction = column.sort or column.defaultsort or 1
+            if direction == 1 then
+                return an < bn
+            end
+            return an > bn
+        end
+
+        local direction = column.sort or column.defaultsort or 1
+        if direction == 1 then
+            return av < bv
+        end
+        return av > bv
+    end
+
+    local function setCellAttendance(rowFrame, frame, data, cols, row, realrow, column)
+        local name = data and data[realrow] and data[realrow].name or nil
+        local score = self:GetAttendanceScoreForCandidate(name)
+        if score == nil then
+            frame.text:SetText("-")
+            frame.text:SetTextColor(0.70, 0.70, 0.70, 1)
+            if data and data[realrow] and data[realrow].cols and data[realrow].cols[column] then
+                data[realrow].cols[column].value = -1
+            end
+            return
+        end
+
+        local r, g, b = self:GetAttendanceScoreColor(score)
+        frame.text:SetText(string.format("%.1f", score))
+        frame.text:SetTextColor(r, g, b, 1)
+        if data and data[realrow] and data[realrow].cols and data[realrow].cols[column] then
+            data[realrow].cols[column].value = score
+        end
+    end
+
     local function raidSignupSort(tableObj, rowa, rowb, sortbycol)
         local column = tableObj.cols[sortbycol]
         local a = tableObj:GetRow(rowa)
@@ -177,6 +230,7 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
 
     local preparednessColumnExists = false
     local greatVaultColumnExists = false
+    local attendanceColumnExists = false
     local raidSignupColumnExists = false
     for _, col in ipairs(voting.scrollCols or {}) do
         if col.colName == "preparednessTier" then
@@ -187,6 +241,10 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
             col.DoCellUpdate = setCellGreatVault
             col.comparesort = greatVaultSort
             greatVaultColumnExists = true
+        elseif col.colName == "attendanceScore" then
+            col.DoCellUpdate = setCellAttendance
+            col.comparesort = attendanceSort
+            attendanceColumnExists = true
         elseif col.colName == "raidSignup" then
             col.DoCellUpdate = setCellRaidSignup
             col.comparesort = raidSignupSort
@@ -214,6 +272,18 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
             width = 52,
             align = "CENTER",
             comparesort = greatVaultSort,
+            sortnext = 2,
+        })
+    end
+
+    if not attendanceColumnExists then
+        tinsert(voting.scrollCols, {
+            name = "Att",
+            DoCellUpdate = setCellAttendance,
+            colName = "attendanceScore",
+            width = 56,
+            align = "CENTER",
+            comparesort = attendanceSort,
             sortnext = 2,
         })
     end

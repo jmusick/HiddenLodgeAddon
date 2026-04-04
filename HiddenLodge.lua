@@ -49,6 +49,14 @@ local function ensureDefaults(db)
     db.greatVaultScore.sync.syncedAt = db.greatVaultScore.sync.syncedAt or 0
     db.greatVaultScore.sync.entries = db.greatVaultScore.sync.entries or 0
 
+    db.attendanceScore = db.attendanceScore or {}
+    db.attendanceScore.byFull = db.attendanceScore.byFull or {}
+    db.attendanceScore.byName = db.attendanceScore.byName or {}
+    db.attendanceScore.sync = db.attendanceScore.sync or {}
+    db.attendanceScore.sync.source = db.attendanceScore.sync.source or ""
+    db.attendanceScore.sync.syncedAt = db.attendanceScore.sync.syncedAt or 0
+    db.attendanceScore.sync.entries = db.attendanceScore.sync.entries or 0
+
     db.raidSignup = db.raidSignup or {}
     db.raidSignup.byFullStatus = db.raidSignup.byFullStatus or {}
     db.raidSignup.byNameStatus = db.raidSignup.byNameStatus or {}
