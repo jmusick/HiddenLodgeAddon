@@ -69,6 +69,17 @@ local function ensureDefaults(db)
     db.raidSignup.sync.raidName = db.raidSignup.sync.raidName or ""
     db.raidSignup.sync.raidStartUtc = db.raidSignup.sync.raidStartUtc or 0
 
+    db.droptimizer = db.droptimizer or {}
+    db.droptimizer.byItemByFullDelta = db.droptimizer.byItemByFullDelta or {}
+    db.droptimizer.byItemByNameDelta = db.droptimizer.byItemByNameDelta or {}
+    db.droptimizer.byItemByFullPct = db.droptimizer.byItemByFullPct or {}
+    db.droptimizer.byItemByNamePct = db.droptimizer.byItemByNamePct or {}
+    db.droptimizer.sync = db.droptimizer.sync or {}
+    db.droptimizer.sync.source = db.droptimizer.sync.source or ""
+    db.droptimizer.sync.syncedAt = db.droptimizer.sync.syncedAt or 0
+    db.droptimizer.sync.entries = db.droptimizer.sync.entries or 0
+    db.droptimizer.sync.items = db.droptimizer.sync.items or 0
+
     db.altNoteSync = db.altNoteSync or {}
     db.altNoteSync.preferredByName = db.altNoteSync.preferredByName or {}
     db.altNoteSync.mainByName = db.altNoteSync.mainByName or {}

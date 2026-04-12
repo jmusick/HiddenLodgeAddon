@@ -115,6 +115,7 @@ function HiddenLodge:RefreshPreparednessStatusUI()
     local preparedness = self.GetPreparednessSyncStatus and self:GetPreparednessSyncStatus() or { entries = 0, syncedAt = 0, source = "Unknown" }
     local greatVault = self.GetGreatVaultSyncStatus and self:GetGreatVaultSyncStatus() or { entries = 0, syncedAt = 0, source = "Unknown" }
     local raidSignup = self.GetRaidSignupSyncStatus and self:GetRaidSignupSyncStatus() or { entries = 0, syncedAt = 0, source = "Unknown", raidName = "" }
+    local droptimizer = self.GetDroptimizerSyncStatus and self:GetDroptimizerSyncStatus() or { entries = 0, syncedAt = 0, source = "Unknown", items = 0 }
     local altNoteSync = self.GetAltNoteSyncStatus and self:GetAltNoteSyncStatus() or { entries = 0, syncedAt = 0, source = "Unknown", lastAppliedSyncedAt = 0 }
     altNoteSync.pendingApply = (tonumber(altNoteSync.entries) or 0) > 0
         and (tonumber(altNoteSync.syncedAt) or 0) > 0
@@ -124,6 +125,11 @@ function HiddenLodge:RefreshPreparednessStatusUI()
         buildSyncSection("Preparedness", preparedness),
         buildSyncSection("Great Vault", greatVault),
         buildSyncSection("Raid Signup", raidSignup),
+        buildSyncSection("Droptimizer", {
+            entries = droptimizer.entries,
+            syncedAt = droptimizer.syncedAt,
+            source = (droptimizer.source or "Unknown") .. " (items: " .. tostring(tonumber(droptimizer.items) or 0) .. ")",
+        }),
         buildSyncSection("Alt Note Sync", altNoteSync),
     }
 

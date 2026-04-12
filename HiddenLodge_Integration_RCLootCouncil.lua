@@ -228,10 +228,68 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
         end
     end
 
+    local function droptimizerSort(tableObj, rowa, rowb, sortbycol)
+        local column = tableObj.cols[sortbycol]
+        local a = tableObj:GetRow(rowa)
+        local b = tableObj:GetRow(rowb)
+        if not (a and b) then
+            return false
+        end
+
+        local itemId = self:GetCurrentRCLootItemId(voting)
+        local adelta = select(1, self:GetDroptimizerUpgradeForCandidate(a.name, itemId))
+        local bdelta = select(1, self:GetDroptimizerUpgradeForCandidate(b.name, itemId))
+        local av = adelta or -999999999
+        local bv = bdelta or -999999999
+
+        if av == bv then
+            local an = tostring(a.name or "")
+            local bn = tostring(b.name or "")
+            if an == bn then
+                return false
+            end
+            local direction = column.sort or column.defaultsort or 1
+            if direction == 1 then
+                return an < bn
+            end
+            return an > bn
+        end
+
+        local direction = column.sort or column.defaultsort or 1
+        if direction == 1 then
+            return av < bv
+        end
+        return av > bv
+    end
+
+    local function setCellDroptimizer(rowFrame, frame, data, cols, row, realrow, column)
+        local name = data and data[realrow] and data[realrow].name or nil
+        local itemId = self:GetCurrentRCLootItemId(voting)
+        local delta, pct = self:GetDroptimizerUpgradeForCandidate(name, itemId)
+
+        if not itemId then
+            frame.text:SetText("?")
+            frame.text:SetTextColor(0.70, 0.70, 0.70, 1)
+            if data and data[realrow] and data[realrow].cols and data[realrow].cols[column] then
+                data[realrow].cols[column].value = -999999999
+            end
+            return
+        end
+
+        frame.text:SetText(self:FormatDroptimizerUpgrade(delta, pct))
+        local r, g, b = self:GetDroptimizerUpgradeColor(delta)
+        frame.text:SetTextColor(r, g, b, 1)
+
+        if data and data[realrow] and data[realrow].cols and data[realrow].cols[column] then
+            data[realrow].cols[column].value = delta or -999999999
+        end
+    end
+
     local preparednessColumnExists = false
     local greatVaultColumnExists = false
     local attendanceColumnExists = false
     local raidSignupColumnExists = false
+    local droptimizerColumnExists = false
     for _, col in ipairs(voting.scrollCols or {}) do
         if col.colName == "preparednessTier" then
             col.DoCellUpdate = setCellPreparedness
@@ -249,6 +307,10 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
             col.DoCellUpdate = setCellRaidSignup
             col.comparesort = raidSignupSort
             raidSignupColumnExists = true
+        elseif col.colName == "droptimizerUpgrade" then
+            col.DoCellUpdate = setCellDroptimizer
+            col.comparesort = droptimizerSort
+            droptimizerColumnExists = true
         end
     end
 
@@ -296,6 +358,18 @@ function HiddenLodge:EnsureRCLootCouncilColumn()
             width = 136,
             align = "LEFT",
             comparesort = raidSignupSort,
+            sortnext = 2,
+        })
+    end
+
+    if not droptimizerColumnExists then
+        tinsert(voting.scrollCols, {
+            name = "Upgrade",
+            DoCellUpdate = setCellDroptimizer,
+            colName = "droptimizerUpgrade",
+            width = 114,
+            align = "LEFT",
+            comparesort = droptimizerSort,
             sortnext = 2,
         })
     end
