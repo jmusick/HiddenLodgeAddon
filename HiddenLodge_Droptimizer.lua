@@ -200,6 +200,24 @@ function HiddenLodge:GetCurrentRCLootItemId(voting)
         end
     end
 
+    -- RCLootCouncil stores loot sessions in lootTable indexed by currentSession
+    if voting then
+        local sessionIdx = voting.currentSession
+        local lootTable = voting.lootTable
+        if sessionIdx and lootTable then
+            local session = lootTable[sessionIdx]
+            if type(session) == "table" then
+                table.insert(candidates, session.link)
+                table.insert(candidates, session.item)
+                table.insert(candidates, session.itemLink)
+                if type(session.item) == "table" then
+                    table.insert(candidates, session.item.link)
+                    table.insert(candidates, session.item.itemLink)
+                end
+            end
+        end
+    end
+
     for _, value in ipairs(candidates) do
         if value then
             local itemId = nil
