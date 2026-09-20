@@ -89,6 +89,10 @@ local function ensureDefaults(db)
     db.altNoteSync.sync.syncedAt = db.altNoteSync.sync.syncedAt or 0
     db.altNoteSync.sync.entries = db.altNoteSync.sync.entries or 0
     db.altNoteSync.lastAppliedSyncedAt = db.altNoteSync.lastAppliedSyncedAt or 0
+
+    db.cauldron = db.cauldron or {}
+    db.cauldron.days = db.cauldron.days or {}
+    db.cauldron.debugLog = db.cauldron.debugLog or {}
 end
 
 function HiddenLodge:RegisterIntegration(name, integration)
@@ -157,6 +161,9 @@ function HiddenLodge:OnEnable()
     if self.OnEnableAltNoteSync then
         self:OnEnableAltNoteSync()
     end
+    if self.OnEnableCauldronTracker then
+        self:OnEnableCauldronTracker()
+    end
 end
 
 function HiddenLodge:HandleAddonLoaded(_, loadedAddonName)
@@ -181,5 +188,12 @@ function HiddenLodge:HandleSlashCommand(input)
         return
     end
 
-    self:Print("Usage: /hl [show|hide]")
+    if command == "cauldron" then
+        if self.ToggleCauldronFrame then
+            self:ToggleCauldronFrame()
+        end
+        return
+    end
+
+    self:Print("Usage: /hl [show|hide|cauldron]")
 end

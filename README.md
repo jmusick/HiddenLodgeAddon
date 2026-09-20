@@ -9,6 +9,7 @@ Starter World of Warcraft addon scaffold for the Hidden Lodge guild.
 - `HiddenLodge_Preparedness.lua`: Preparedness data import/parsing and lookup logic.
 - `HiddenLodge_GreatVault.lua`: Great Vault score lookup and display color helpers.
 - `HiddenLodge_Attendance.lua`: Attendance score lookup and display color helpers.
+- `HiddenLodge_CauldronTracker.lua`: Raid cauldron flask/phial tracking (spell-cast + loot detection) and its popup window.
 - `HiddenLodge_Integration_RCLootCouncil.lua`: RCLootCouncil integration module that injects the voting-frame column.
 - `HiddenLodge_UI.lua`: Main window construction and JSON import text area.
 
@@ -51,7 +52,17 @@ When RCLootCouncil is installed and loaded, HiddenLodge injects `Prep`, `Att`, a
 ## In-game usage
 - `/hl` or `/hl show`: Toggle/show the main window.
 - `/hl hide`: Hide the main window.
+- `/hl cauldron`: Toggle the cauldron tracker window.
 - Open the panel to view current desktop sync status.
+
+## Cauldron tracker
+Tracks how many flasks/phials each raider takes from raid cauldrons, ported from the standalone CauldronTracker addon.
+
+- Detects cauldron placement via `UNIT_SPELLCAST_START` (known spell IDs, plus a name-contains-"cauldron" fallback).
+- Detects each flask/phial "create" via `CHAT_MSG_LOOT`, counting one charge per create regardless of stack size.
+- Falls back to burst detection (3+ different players creating within 30s) if a placement cast is missed.
+- Counts are scoped per day and reset at `/reload` only if the active cauldron window has expired.
+- Open via the "Cauldron Tracker" button on the main window or `/hl cauldron`.
 
 ## CurseForge release automation
 This repo includes tag-based release automation in `.github/workflows/release.yml` using `BigWigsMods/packager`.
