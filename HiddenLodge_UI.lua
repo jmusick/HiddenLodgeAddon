@@ -275,9 +275,20 @@ function HiddenLodge:CreateMainWindow()
         end
     end)
 
+    frame.showRaidCompButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    frame.showRaidCompButton:SetSize(bottomButtonWidth, c.BUTTON_HEIGHT)
+    frame.showRaidCompButton:SetPoint("RIGHT", frame.showCauldronButton, "LEFT", -bottomButtonGap, 0)
+    frame.showRaidCompButton:SetText("Raid Comp")
+    self:ApplySecondaryButtonStyle(frame.showRaidCompButton)
+    frame.showRaidCompButton:SetScript("OnClick", function()
+        if self.ShowRaidCompFrame then
+            self:ShowRaidCompFrame()
+        end
+    end)
+
     frame.statusText = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     frame.statusText:SetPoint("LEFT", content, "LEFT", innerInset, innerInset + 1)
-    frame.statusText:SetPoint("RIGHT", frame.showCauldronButton, "LEFT", -10, 0)
+    frame.statusText:SetPoint("RIGHT", frame.showRaidCompButton, "LEFT", -10, 0)
     frame.statusText:SetJustifyH("LEFT")
     frame.statusText:SetTextColor(0.93, 0.79, 0.40)
     frame.statusText:SetText("Data sync status available.")

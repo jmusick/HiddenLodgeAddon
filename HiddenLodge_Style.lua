@@ -4,7 +4,10 @@ local addonName = ...
 local HiddenLodge = LibStub("AceAddon-3.0"):GetAddon(addonName) --[[@as HiddenLodgeAddon]]
 
 HiddenLodge.Constants = {
-    WINDOW_WIDTH = 700,
+    -- Wide enough for the main window's 4-button bottom row (Raid Comp
+    -- added a 4th button alongside Cauldron Tracker/Raid Invites/Show
+    -- Mismatched Notes); every other window shares this constant too.
+    WINDOW_WIDTH = 820,
     WINDOW_HEIGHT = 470,
     HEADER_HEIGHT = 38,
     CONTENT_PADDING = 16,

@@ -195,5 +195,12 @@ function HiddenLodge:HandleSlashCommand(input)
         return
     end
 
-    self:Print("Usage: /hl [show|hide|cauldron]")
+    if command == "raidcomp" then
+        if self.ShowRaidCompFrame then
+            self:ShowRaidCompFrame()
+        end
+        return
+    end
+
+    self:Print("Usage: /hl [show|hide|cauldron|raidcomp]")
 end
